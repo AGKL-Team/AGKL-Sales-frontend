@@ -6,3 +6,4 @@ export default function RedirectTo() {
   const pathToGo = isAuthenticated ? "/imc" : "/auth/log-in";
   return <Navigate to={pathToGo} replace />;
 }
+ 

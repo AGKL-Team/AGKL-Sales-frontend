@@ -1,5 +1,6 @@
 import { Link, Outlet } from "react-router-dom";
-import Logo from "../components/Logo";
+
+import ImageBag from "../components/imageBag";
 export function AuthLayout() {
   return (
     <div className="d-flex flex-column vh-100 fadeInUp theme-responsive">
@@ -17,7 +18,7 @@ export function AuthLayout() {
           style={{ backgroundColor: "#9cabfdff", borderRadius: 20 }}
           className="d-none d-lg-flex flex-grow-1 align-items-center justify-content-center"
         >
-          <Logo />
+          <ImageBag />
         </section>
         <section
           className="d-flex flex-grow-1 align-items-center justify-content-center"
