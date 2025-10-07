@@ -1,16 +1,16 @@
+
 import React, { useEffect, useState } from "react";
 import Header from "../../dashboard/components/Header";
 import { useNavigate, useParams } from "react-router-dom";
-import { getProductApi, updateProductApi } from "../services/catalog.api";
-// import type { CatalogProduct } from "../interfaces/product.interface"; // ← si lo necesitás, dejalo; si no, removelo
+import { DATA } from "../hooks/useCatalog";
 
 type FormState = {
   nombre: string;
   descripcion: string;
   categoria: string;
   marca: string;
-  precio: string;              // string para tipeo, se parsea al guardar
-  imagenFile: File | null;     // nueva imagen (opcional)
+  precio: string;               // string para tipeo; se parsea al guardar
+  imagenFile: File | null;      // nueva imagen (opcional)
   imagenPreview: string | null; // preview (usa imagenUrl inicial o la nueva)
 };
 
@@ -30,34 +30,32 @@ export default function EditProductForm() {
     imagenPreview: null,
   });
 
+  // Cargar desde MOCK (DATA) por id
   useEffect(() => {
-    if (!id) return;
-    let cancel = false;
-    (async () => {
-      try {
-        setLoading(true);
-        const p = await getProductApi(id);
-        if (cancel) return;
-        setForm({
-          nombre: p.nombre ?? "",
-          descripcion: p.descripcion ?? "",
-          categoria: p.categoria ?? "",
-          marca: p.marca ?? "",
-          precio: String(p.precio ?? ""),
-          imagenFile: null,
-          imagenPreview: p.imagenUrl || null,
-        });
-      } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e);
-        alert(msg || "No se pudo cargar el producto");
-        navigate("/dashboard/catalogo");
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    })();
-    return () => {
-      cancel = true;
-    };
+    if (!id) {
+      navigate("/dashboard/catalogo", { state: { error: "ID de producto no proporcionado" } });
+      return;
+    }
+
+    setLoading(true);
+
+    const p = DATA.find((x) => x.id === id);
+    if (!p) {
+      navigate("/dashboard/catalogo", { state: { error: `Producto ${id} no encontrado (mock)` } });
+      return;
+    }
+
+    setForm({
+      nombre: p.nombre ?? "",
+      descripcion: p.descripcion ?? "",
+      categoria: p.categoria ?? "",
+      marca: p.marca ?? "",
+      precio: String(p.precio ?? ""),
+      imagenFile: null,
+      imagenPreview: p.imagenUrl || null,
+    });
+
+    setLoading(false);
   }, [id, navigate]);
 
   const setText =
@@ -78,15 +76,19 @@ export default function EditProductForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
+
     if (!form.nombre.trim() || !form.marca.trim() || !form.precio.trim()) {
       alert("Completá nombre, marca y precio.");
       return;
     }
 
-    const precioNumber = Number(form.precio.replace(/[^\d]/g, ""));
+    setSaving(true);
     try {
-      setSaving(true);
-      await updateProductApi(id, {
+      const precioNumber = Number(form.precio.replace(/[^\d]/g, ""));
+
+      // MOCK de actualización (acá iría la llamada al backend si existiera)
+      console.log("Actualizar (mock):", {
+        id,
         nombre: form.nombre.trim(),
         descripcion: form.descripcion.trim(),
         categoria: form.categoria,
@@ -94,10 +96,8 @@ export default function EditProductForm() {
         precio: isNaN(precioNumber) ? 0 : precioNumber,
         imagenFile: form.imagenFile ?? undefined,
       });
+
       navigate("/dashboard/catalogo");
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      alert(msg || "No se pudo actualizar el producto");
     } finally {
       setSaving(false);
     }
@@ -116,6 +116,7 @@ export default function EditProductForm() {
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
       <Header />
 
+      {/* Título */}
       <section style={{ textAlign: "center", padding: "24px 16px 16px" }}>
         <h2
           style={{
@@ -129,6 +130,7 @@ export default function EditProductForm() {
         </h2>
       </section>
 
+      {/* Card del formulario */}
       <section
         className="theme-card"
         style={{
@@ -140,8 +142,12 @@ export default function EditProductForm() {
         }}
       >
         <form onSubmit={onSubmit} noValidate>
+          {/* Nombre */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="nombre" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="nombre"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Nombre
             </label>
             <input
@@ -155,8 +161,12 @@ export default function EditProductForm() {
             />
           </div>
 
+          {/* Descripción */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="descripcion" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="descripcion"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Descripción
             </label>
             <textarea
@@ -171,8 +181,12 @@ export default function EditProductForm() {
             />
           </div>
 
+          {/* Categoría */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="categoria" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="categoria"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Categoría
             </label>
             <select
@@ -193,8 +207,12 @@ export default function EditProductForm() {
             </select>
           </div>
 
+          {/* Precio */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="precio" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="precio"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Precio
             </label>
             <input
@@ -209,8 +227,12 @@ export default function EditProductForm() {
             />
           </div>
 
+          {/* Marca */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="marca" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="marca"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Marca
             </label>
             <input
@@ -224,8 +246,12 @@ export default function EditProductForm() {
             />
           </div>
 
+          {/* Imagen */}
           <div style={{ marginBottom: 18 }}>
-            <label htmlFor="imagen" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="imagen"
+              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            >
               Imagen
             </label>
             <input
@@ -261,6 +287,7 @@ export default function EditProductForm() {
             </div>
           </div>
 
+          {/* Botones */}
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
               type="button"

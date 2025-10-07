@@ -1,21 +1,15 @@
 import React from "react";
 import DashboardPage from "../../features/dashboard/pages/DashboardPage";
 import CatalogPage from "../../features/catalog/pages/CatalogPage";
-import CreateProductForm from "../../features/catalog/components/CreateProductForm"; // ← NUEVO
+import CreateProductForm from "../../features/catalog/components/CreateProductForm";
+import EditProductForm from "../../features/catalog/components/EditProductForm"; 
 
 const AdminRoutes = [
   { path: "/dashboard", element: <DashboardPage /> },
-
-  // Catálogo
   { path: "/dashboard/catalogo", element: <CatalogPage /> },
-  { path: "/dashboard/catalogo/nuevo", element: <CreateProductForm /> }, // ← NUEVO
-
-  // Otras secciones
-  { path: "/dashboard/cuenta", element: <div>Cuenta</div> },
-  { path: "/dashboard/usuarios", element: <div>Usuarios</div> },
-  { path: "/dashboard/ventas", element: <div>Ventas</div> },
-  { path: "/dashboard/marcas", element: <div>Marcas</div> },
-  { path: "/dashboard/reportes", element: <div>Reportes</div> },
+  { path: "/dashboard/catalogo/nuevo", element: <CreateProductForm /> },
+  { path: "/dashboard/catalogo/:id/editar", element: <EditProductForm /> }, 
+  // ...
 ];
 
 export default AdminRoutes;
