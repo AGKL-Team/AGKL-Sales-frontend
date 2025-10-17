@@ -3,7 +3,7 @@ import Header from "../components/Header";
 import DashboardCard from "../components/dashboard-form";
 import type { DashboardCardItem } from "../interfaces/types";
 
-// IMPORTS DE IMÁGENES DESDE src/assets (sin espacios/Mayúsculas)
+// IMPORTS DE IMÁGENES DESDE src/assets
 import imgCatalogo from "../../../assets/catalog.png";
 import imgCuenta from "../../../assets/user.png";
 import imgUsuarios from "../../../assets/contact.png";

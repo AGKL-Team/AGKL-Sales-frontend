@@ -30,7 +30,10 @@ const Header: React.FC = () => {
           justifyContent: "space-between",
         }}
       >
-        <h1 style={{ fontWeight: 700, fontSize: 18 }}>Gestion Ventas</h1>
+        <section style={{ textAlign: "left" }}>
+          <h1 style={{ fontWeight: 700, fontSize: 18 }}>Gestion Ventas</h1>
+        </section>
+        
 
         <div style={{ display: "flex", gap: 8 }}>
           <button style={{ ...pill, background: "#5b9bd5" }}>Cuenta</button>

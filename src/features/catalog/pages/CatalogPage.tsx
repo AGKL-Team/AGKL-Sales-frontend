@@ -2,11 +2,11 @@ import React from "react";
 import Header from "../../dashboard/components/Header";
 import { useCatalog } from "../hooks/useCatalog";
 import ProductRow from "../components/ProductRow";
-import { useNavigate } from "react-router-dom";   // ← NUEVO
+import { useNavigate } from "react-router-dom";  
 
 export default function CatalogPage() {
   const { q, setQ, items } = useCatalog();
-  const navigate = useNavigate();                 // ← NUEVO
+  const navigate = useNavigate();                 
 
   return (
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
