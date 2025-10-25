@@ -10,19 +10,18 @@ export default function MainPage() {
 
         <HomeImage size={300} className="mx-auto mb-6" />
 
-          <div className="max-w-md w-full mx-auto">
-            <a href="/home" className="block">
-              <button
-                type="button"
-                className="
+        <div className="max-w-md w-full mx-auto">
+          <a href="/redirect" className="block">
+            <button
+              type="button"
+              className="
                   btn btn-primary mt-3
                 "
-              >
-                Empezar ahora
-              </button>
-            </a>
-          </div>
-
+            >
+              Empezar ahora
+            </button>
+          </a>
+        </div>
       </section>
     </main>
   );

@@ -4,20 +4,41 @@ import DashboardCard from "../components/dashboard-form";
 import type { DashboardCardItem } from "../interfaces/types";
 
 // IMPORTS DE IMÁGENES DESDE src/assets
-import imgCatalogo from "../../../assets/catalog.png";
-import imgCuenta from "../../../assets/user.png";
-import imgUsuarios from "../../../assets/contact.png";
 import imgVentas from "../../../assets/Warehouse Shelf.png";
+import imgCatalogo from "../../../assets/catalog.png";
 import imgMarcas from "../../../assets/r marca registrada.png";
-import imgReportes from "../../../assets/Data Scientist.png";
 
 const dashboardItems: DashboardCardItem[] = [
-  { id: "catalogo", label: "Catalogo", href: "/dashboard/catalogo", iconUrl: imgCatalogo },
-  { id: "cuenta",   label: "Cuenta",   href: "/dashboard/cuenta",   iconUrl: imgCuenta },
-  { id: "usuarios", label: "Usuarios", href: "/dashboard/usuarios", iconUrl: imgUsuarios },
-  { id: "ventas",   label: "Ventas",   href: "/dashboard/ventas",   iconUrl: imgVentas },
-  { id: "marcas",   label: "Marcas",   href: "/dashboard/marcas",   iconUrl: imgMarcas },
-  { id: "reportes", label: "Reportes", href: "/dashboard/reportes", iconUrl: imgReportes },
+  {
+    id: "products",
+    label: "Catalogo",
+    href: "/dashboard/products",
+    iconUrl: imgCatalogo,
+  },
+  {
+    id: "sales",
+    label: "Ventas",
+    href: "/dashboard/sales",
+    iconUrl: imgVentas,
+  },
+  {
+    id: "brands",
+    label: "Marcas",
+    href: "/dashboard/brands",
+    iconUrl: imgMarcas,
+  },
+  {
+    id: "categories",
+    label: "Categorías",
+    href: "/dashboard/categories",
+    iconUrl: imgMarcas,
+  },
+  // {
+  //   id: "reports",
+  //   label: "Reportes",
+  //   href: "/dashboard/reports",
+  //   iconUrl: imgReportes,
+  // },
 ];
 
 const DashboardPage: React.FC = () => {

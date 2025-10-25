@@ -1,4 +1,4 @@
-import { CategoryResponse } from "./category-response.interface";
+import { CategoryResponse } from "../../brands/interfaces/category-response.interface";
 
 export interface ImcResponse {
   id: number;

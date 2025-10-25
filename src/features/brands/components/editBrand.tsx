@@ -1,13 +1,13 @@
-
 import React, { useEffect, useState } from "react";
-import Header from "../../dashboard/components/Header";
 import { useNavigate, useParams } from "react-router-dom";
-import { DATA } from "../hooks/useBrand";
+import LoadingIndicator from "../../../shared/components/LoaderIndicator";
+import Header from "../../dashboard/components/Header";
+import { useGetBrand } from "../hooks/useGetBrand";
 
 type FormState = {
   nombre: string;
-  descripcion: string;            // string para tipeo; se parsea al guardar
-  imagenFile: File | null;      // nueva imagen (opcional)
+  descripcion: string; // string para tipeo; se parsea al guardar
+  imagenFile: File | null; // nueva imagen (opcional)
   imagenPreview: string | null; // preview (usa imagenUrl inicial o la nueva)
 };
 
@@ -15,7 +15,11 @@ export default function EditProductForm() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
+  const brandId = id ? parseInt(id, 10) : 0;
+
+  // Obtener datos de la marca
+  const { brand, isLoading } = useGetBrand(brandId);
+
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<FormState>({
     nombre: "",
@@ -24,40 +28,23 @@ export default function EditProductForm() {
     imagenPreview: null,
   });
 
-  // Cargar desde MOCK (DATA) por id
-  useEffect(() => {
-    if (!id) {
-      navigate("/dashboard/marca", { state: { error: "ID de marca no proporcionado" } });
-      return;
-    }
-
-    setLoading(true);
-
-    const p = DATA.find((x) => x.id === id);
-    if (!p) {
-      navigate("/dashboard/marca", { state: { error: `Marca ${id} no encontrado (mock)` } });
-      return;
-    }
-
-    setForm({
-      nombre: p.nombre ?? "",
-      descripcion: p.descripcion ?? "",
-      imagenFile: null,
-      imagenPreview: p.imagenUrl || null,
-    });
-
-    setLoading(false);
-  }, [id, navigate]);
-
   const setText =
     (k: keyof Omit<FormState, "imagenFile" | "imagenPreview">) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) {
-      setForm((f) => ({ ...f, imagenFile: null, imagenPreview: f.imagenPreview }));
+      setForm((f) => ({
+        ...f,
+        imagenFile: null,
+        imagenPreview: f.imagenPreview,
+      }));
       return;
     }
     const url = URL.createObjectURL(file);
@@ -75,7 +62,6 @@ export default function EditProductForm() {
 
     setSaving(true);
     try {
-
       // MOCK de actualización (acá iría la llamada al backend si existiera)
       console.log("Actualizar (mock):", {
         id,
@@ -84,24 +70,30 @@ export default function EditProductForm() {
         imagenFile: form.imagenFile ?? undefined,
       });
 
-      navigate("/dashboard/catalogo");
+      navigate("/dashboard/products");
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="theme-responsive" style={{ minHeight: "100vh" }}>
-        <Header />
-        <div style={{ maxWidth: 720, margin: "40px auto", padding: 18 }}>Cargando…</div>
-      </div>
-    );
-  }
+  useEffect(() => {
+    if (brand) {
+      setForm({
+        nombre: brand.name,
+        descripcion: brand.description,
+        imagenFile: null,
+        imagenPreview: brand.logoUrl,
+      });
+    }
+  }, [brand]);
 
   return (
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
       <Header />
+
+      {isLoading && (
+        <LoadingIndicator isLoading message="Recuperando marca..." />
+      )}
 
       {/* Título */}
       <section style={{ textAlign: "center", padding: "24px 16px 16px" }}>
@@ -133,7 +125,13 @@ export default function EditProductForm() {
           <div style={{ marginBottom: 14 }}>
             <label
               htmlFor="nombre"
-              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
             >
               Nombre
             </label>
@@ -152,7 +150,13 @@ export default function EditProductForm() {
           <div style={{ marginBottom: 14 }}>
             <label
               htmlFor="descripcion"
-              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
             >
               Descripción
             </label>
@@ -171,7 +175,13 @@ export default function EditProductForm() {
           <div style={{ marginBottom: 18 }}>
             <label
               htmlFor="imagen"
-              style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
             >
               Imagen
             </label>
@@ -200,10 +210,23 @@ export default function EditProductForm() {
                 <img
                   src={form.imagenPreview}
                   alt="Vista previa"
-                  style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "cover" }}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    display: "block",
+                    objectFit: "cover",
+                  }}
                 />
               ) : (
-                <span style={{ opacity: 0.7, color: "var(--theme-text)", fontSize: 12 }}>Sin imagen</span>
+                <span
+                  style={{
+                    opacity: 0.7,
+                    color: "var(--theme-text)",
+                    fontSize: 12,
+                  }}
+                >
+                  Sin imagen
+                </span>
               )}
             </div>
           </div>
@@ -212,7 +235,7 @@ export default function EditProductForm() {
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
               type="button"
-              onClick={() => navigate("/dashboard/catalogo")}
+              onClick={() => navigate("/dashboard/brands")}
               style={{
                 padding: "8px 14px",
                 border: "1px solid var(--color-input-border)",

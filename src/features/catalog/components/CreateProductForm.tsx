@@ -1,20 +1,22 @@
 import React, { useState } from "react";
-import Header from "../../dashboard/components/Header";
 import { useNavigate } from "react-router-dom";
-import type { CatalogProduct } from "../interfaces/product.interface";
+import Header from "../../dashboard/components/Header";
+import { useSaveProduct } from "../hooks/useSaveProduct";
+import type { ProductResponse } from "../interfaces/product-response.interface";
 
 type FormState = {
   nombre: string;
   descripcion: string;
   categoria: string;
   marca: string;
-  precio: string;           // string para tipeo; se parsea al guardar
+  precio: string; // string para tipeo; se parsea al guardar
   imagenFile: File | null;
   imagenPreview: string | null; // para ver la imagen antes de subir
 };
 
 export default function CreateProductForm() {
   const navigate = useNavigate();
+  const { save } = useSaveProduct();
 
   const [form, setForm] = useState<FormState>({
     nombre: "",
@@ -28,7 +30,11 @@ export default function CreateProductForm() {
 
   const setText =
     (k: keyof Omit<FormState, "imagenFile" | "imagenPreview">) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +47,7 @@ export default function CreateProductForm() {
     setForm((f) => ({ ...f, imagenFile: file, imagenPreview: url }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!form.nombre.trim() || !form.marca.trim() || !form.precio.trim()) {
@@ -50,19 +56,18 @@ export default function CreateProductForm() {
     }
 
     const precioNumber = Number(form.precio.replace(/[^\d]/g, ""));
-    const payload: Omit<CatalogProduct, "id"> = {
-      nombre: form.nombre.trim(),
-      descripcion: form.descripcion.trim(),
-      categoria: form.categoria,
-      marca: form.marca.trim(),
-      precio: isNaN(precioNumber) ? 0 : precioNumber,
+    const payload: Omit<ProductResponse, "id"> = {
+      name: form.nombre.trim(),
+      description: form.descripcion.trim(),
+      categoryId: form.categoria,
+      brandId: form.marca.trim(),
+      price: isNaN(precioNumber) ? 0 : precioNumber,
       imagenUrl: form.imagenFile ? form.imagenFile.name : null, // acá después pondrás la URL devuelta por el backend
     };
 
     console.log("Crear producto (payload listo para API):", payload);
 
-    // TODO: llamar a tu API y luego:
-    navigate("/dashboard/catalogo");
+    await save(payload);
   };
 
   return (
@@ -97,7 +102,16 @@ export default function CreateProductForm() {
         <form onSubmit={onSubmit} noValidate>
           {/* Nombre */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="nombre" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="nombre"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Nombre
             </label>
             <input
@@ -113,7 +127,16 @@ export default function CreateProductForm() {
 
           {/* Descripción */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="descripcion" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="descripcion"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Descripción
             </label>
             <textarea
@@ -130,7 +153,16 @@ export default function CreateProductForm() {
 
           {/* Categoría */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="categoria" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="categoria"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Categoría
             </label>
             <select
@@ -153,7 +185,16 @@ export default function CreateProductForm() {
 
           {/* Precio */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="precio" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="precio"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Precio
             </label>
             <input
@@ -170,7 +211,16 @@ export default function CreateProductForm() {
 
           {/* Marca */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="marca" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="marca"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Marca
             </label>
             <input
@@ -186,7 +236,16 @@ export default function CreateProductForm() {
 
           {/* Imagen */}
           <div style={{ marginBottom: 18 }}>
-            <label htmlFor="imagen" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="imagen"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Imagen
             </label>
             <input
@@ -214,10 +273,23 @@ export default function CreateProductForm() {
                 <img
                   src={form.imagenPreview}
                   alt="Vista previa de la imagen seleccionada"
-                  style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "cover" }}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    display: "block",
+                    objectFit: "cover",
+                  }}
                 />
               ) : (
-                <span style={{ opacity: 0.7, color: "var(--theme-text)", fontSize: 12 }}>Sin imagen</span>
+                <span
+                  style={{
+                    opacity: 0.7,
+                    color: "var(--theme-text)",
+                    fontSize: 12,
+                  }}
+                >
+                  Sin imagen
+                </span>
               )}
             </div>
           </div>
@@ -226,7 +298,7 @@ export default function CreateProductForm() {
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
               type="button"
-              onClick={() => navigate("/dashboard/catalogo")}
+              onClick={() => navigate("/dashboard/products")}
               style={{
                 padding: "8px 14px",
                 border: "1px solid var(--color-input-border)",

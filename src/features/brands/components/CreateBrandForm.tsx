@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import Header from "../../dashboard/components/Header";
 import { useNavigate } from "react-router-dom";
-import type { Brand } from "../interfaces/brand.interface";
+import { toast } from "sonner";
+import Header from "../../dashboard/components/Header";
+import { useSaveBrand } from "../hooks/useSaveBrand";
+import { CreateBrandRequest } from "../interfaces/create-brand-request.interface";
 
 type FormState = {
   nombre: string;
@@ -13,6 +15,8 @@ type FormState = {
 export default function CreateBrandForm() {
   const navigate = useNavigate();
 
+  const { isPending, save } = useSaveBrand();
+
   const [form, setForm] = useState<FormState>({
     nombre: "",
     descripcion: "",
@@ -22,7 +26,11 @@ export default function CreateBrandForm() {
 
   const setText =
     (k: keyof Omit<FormState, "imagenFile" | "imagenPreview">) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+    (
+      e: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) =>
       setForm((f) => ({ ...f, [k]: e.target.value }));
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,23 +43,22 @@ export default function CreateBrandForm() {
     setForm((f) => ({ ...f, imagenFile: file, imagenPreview: url }));
   };
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.nombre.trim() || !form.descripcion.trim()) {
-      alert("Completá nombre, marca y precio.");
+    if (!form.nombre.trim() || !form.imagenFile) {
+      toast.error("Indique un nombre y una imagen");
+      // alert("Completá nombre e indica una imagen.");
       return;
     }
-    const payload: Omit<Brand, "id"> = {
-      nombre: form.nombre.trim(),
-      descripcion: form.descripcion.trim(),
-      imagenUrl: form.imagenFile ? form.imagenFile.name : null, // acá después pondrás la URL devuelta por el backend
+
+    const payload: CreateBrandRequest = {
+      name: form.nombre.trim(),
+      description: form.descripcion.trim(),
+      image: form.imagenFile!, // acá después pondrás la URL devuelta por el backend
     };
 
-    console.log("Crear Marca (payload listo para API):", payload);
-
-    // TODO: llamar a tu API y luego:
-    navigate("/dashboard/catalogo");
+    await save(payload);
   };
 
   return (
@@ -86,7 +93,16 @@ export default function CreateBrandForm() {
         <form onSubmit={onSubmit} noValidate>
           {/* Nombre */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="nombre" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="nombre"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Nombre
             </label>
             <input
@@ -102,7 +118,16 @@ export default function CreateBrandForm() {
 
           {/* Descripción */}
           <div style={{ marginBottom: 14 }}>
-            <label htmlFor="descripcion" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="descripcion"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Descripción
             </label>
             <textarea
@@ -119,7 +144,16 @@ export default function CreateBrandForm() {
 
           {/* Imagen */}
           <div style={{ marginBottom: 18 }}>
-            <label htmlFor="imagen" style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}>
+            <label
+              htmlFor="imagen"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
               Imagen
             </label>
             <input
@@ -147,10 +181,23 @@ export default function CreateBrandForm() {
                 <img
                   src={form.imagenPreview}
                   alt="Vista previa de la imagen seleccionada"
-                  style={{ maxWidth: "100%", maxHeight: "100%", display: "block", objectFit: "cover" }}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    display: "block",
+                    objectFit: "cover",
+                  }}
                 />
               ) : (
-                <span style={{ opacity: 0.7, color: "var(--theme-text)", fontSize: 12 }}>Sin imagen</span>
+                <span
+                  style={{
+                    opacity: 0.7,
+                    color: "var(--theme-text)",
+                    fontSize: 12,
+                  }}
+                >
+                  Sin imagen
+                </span>
               )}
             </div>
           </div>
@@ -159,7 +206,7 @@ export default function CreateBrandForm() {
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
             <button
               type="button"
-              onClick={() => navigate("/dashboard/catalogo")}
+              onClick={() => navigate("/dashboard/products")}
               style={{
                 padding: "8px 14px",
                 border: "1px solid var(--color-input-border)",
@@ -170,6 +217,7 @@ export default function CreateBrandForm() {
                 cursor: "pointer",
               }}
               title="Cancelar y volver"
+              disabled={isPending}
             >
               Cancelar
             </button>
@@ -186,6 +234,7 @@ export default function CreateBrandForm() {
                 cursor: "pointer",
               }}
               title="Guardar producto"
+              disabled={isPending}
             >
               Guardar
             </button>

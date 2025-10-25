@@ -1,4 +1,6 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 const pill: React.CSSProperties = {
   padding: "6px 14px",
@@ -11,7 +13,15 @@ const pill: React.CSSProperties = {
   cursor: "pointer",
 };
 
-const Header: React.FC = () => {
+export default function Header() {
+  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const onLogOut = () => {
+    logout();
+    navigate("/redirect");
+  };
+
   return (
     <header
       className="theme-navbar"
@@ -30,18 +40,34 @@ const Header: React.FC = () => {
           justifyContent: "space-between",
         }}
       >
-        <section style={{ textAlign: "left" }}>
-          <h1 style={{ fontWeight: 700, fontSize: 18 }}>Gestion Ventas</h1>
+        <section style={{ textAlign: "center" }}>
+          <h1 style={{ fontWeight: 700, fontSize: 18 }}>
+            <a
+              href="/redirect"
+              style={{
+                color: "inherit",
+                textDecoration: "none",
+              }}
+            >
+              Gestion de Ventas
+            </a>
+          </h1>
         </section>
-        
 
         <div style={{ display: "flex", gap: 8 }}>
-          <button style={{ ...pill, background: "#5b9bd5" }}>Cuenta</button>
-          <button style={{ ...pill, background: "#e57373" }}>Cerrar Sesion</button>
+          <button style={{ ...pill, background: "#5b9bd5" }}>
+            <a
+              style={{ color: "inherit", textDecoration: "none" }}
+              href="/dashboard/account"
+            >
+              Cuenta
+            </a>
+          </button>
+          <button style={{ ...pill, background: "#e57373" }} onClick={onLogOut}>
+            Cerrar Sesion
+          </button>
         </div>
       </div>
     </header>
   );
-};
-
-export default Header;
+}

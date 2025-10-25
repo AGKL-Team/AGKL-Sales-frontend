@@ -1,19 +1,30 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
+import LoadingIndicator from "../../../shared/components/LoaderIndicator";
 import Header from "../../dashboard/components/Header";
-import { useCatalog } from "../hooks/useCatalog";
 import ProductRow from "../components/ProductRow";
-import { useNavigate } from "react-router-dom";  
+import { useCatalog } from "../hooks/useCatalog";
 
 export default function CatalogPage() {
-  const { q, setQ, items } = useCatalog();
-  const navigate = useNavigate();                 
+  const { q, items, isLoading, setQ } = useCatalog();
+  const navigate = useNavigate();
+
+  if (isLoading) {
+    return <LoadingIndicator isLoading message="Cargando productos..." />;
+  }
 
   return (
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
       <Header />
 
       <section style={{ textAlign: "center", padding: "24px 16px 16px" }}>
-        <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: ".2px", color: "var(--theme-text)" }}>
+        <h2
+          style={{
+            fontSize: 42,
+            fontWeight: 800,
+            letterSpacing: ".2px",
+            color: "var(--theme-text)",
+          }}
+        >
           Catalogo
         </h2>
       </section>
@@ -31,12 +42,25 @@ export default function CatalogPage() {
         {/* Buscar + botón “+” */}
         <div style={{ marginBottom: 14 }}>
           <label
-            style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            style={{
+              display: "block",
+              fontWeight: 700,
+              marginBottom: 6,
+              color: "var(--theme-text)",
+              opacity: 0.9,
+            }}
           >
             Buscar
           </label>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 42px", gap: 10, alignItems: "center" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 42px",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
             <input
               placeholder="Producto o marca…"
               value={q}
@@ -62,7 +86,7 @@ export default function CatalogPage() {
                 textAlign: "center",
                 cursor: "pointer",
               }}
-              onClick={() => navigate("/dashboard/catalogo/nuevo")}   // ← AQUÍ
+              onClick={() => navigate("/dashboard/products/new")} // ← AQUÍ
             >
               +
             </button>
@@ -71,7 +95,14 @@ export default function CatalogPage() {
 
         {/* Lista productos */}
         <div style={{ marginTop: 18 }}>
-          <div style={{ fontWeight: 700, marginBottom: 8, color: "var(--theme-text)", opacity: 0.9 }}>
+          <div
+            style={{
+              fontWeight: 700,
+              marginBottom: 8,
+              color: "var(--theme-text)",
+              opacity: 0.9,
+            }}
+          >
             Lista Productos
           </div>
 

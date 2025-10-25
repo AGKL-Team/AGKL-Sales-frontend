@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import type { Sale } from "../interfaces/sales.interface";
 
 type Props = {
@@ -8,42 +9,47 @@ type Props = {
 };
 
 type FormState = {
-  nombre: string;
-  fecha: string;        // yyyy-mm-dd
-  productos: string[];  // múltiples seleccionados
+  fecha: string; // yyyy-mm-dd
+  productos: string[]; // múltiples seleccionados
   vendedor: string;
   cliente: string;
 };
 
-const DEFAULT_PRODUCTS = ["Producto A", "Producto B", "Producto C", "Producto D", "Producto E"];
+const DEFAULT_PRODUCTS = [
+  "Producto A",
+  "Producto B",
+  "Producto C",
+  "Producto D",
+  "Producto E",
+];
 
 export default function SalesForm({
   onSubmit,
   onCancel,
   productosDisponibles = DEFAULT_PRODUCTS,
 }: Props) {
+  const { authResponse } = useAuthStore();
   const [form, setForm] = useState<FormState>({
-    nombre: "",
     fecha: new Date().toISOString().split("T")[0],
     productos: [],
-    vendedor: "",
+    vendedor: authResponse?.email || "",
     cliente: "",
   });
 
   const setText =
-    (field: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setForm((prev) => ({ ...prev, [field]: e.target.value }));
     };
 
   const handleProductosChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+    const selected = Array.from(e.target.selectedOptions).map(
+      (opt) => opt.value
+    );
     setForm((prev) => ({ ...prev, productos: selected }));
   };
 
   const isValid = useMemo(() => {
     return (
-      form.nombre.trim().length > 0 &&
       form.fecha.trim().length > 0 &&
       form.productos.length > 0 &&
       form.vendedor.trim().length > 0 &&
@@ -53,10 +59,9 @@ export default function SalesForm({
 
   const reset = () =>
     setForm({
-      nombre: "",
       fecha: new Date().toISOString().split("T")[0],
       productos: [],
-      vendedor: "",
+      vendedor: authResponse?.email || "",
       cliente: "",
     });
 
@@ -65,7 +70,6 @@ export default function SalesForm({
     if (!isValid) return;
 
     const payload: Omit<Sale, "id" | "total"> = {
-      nombre: form.nombre.trim(),
       fecha: form.fecha.trim(),
       productos: form.productos,
       vendedor: form.vendedor.trim(),
@@ -79,30 +83,17 @@ export default function SalesForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {/* Nombre */}
-      <div style={{ marginBottom: 14 }}>
-        <label
-          htmlFor="nombre"
-          style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
-        >
-          Nombre
-        </label>
-        <input
-          id="nombre"
-          name="nombre"
-          placeholder="Ej: Venta de Marzo"
-          value={form.nombre}
-          onChange={setText("nombre")}
-          style={{ width: "100%" }}
-          required
-        />
-      </div>
-
       {/* Fecha */}
       <div style={{ marginBottom: 14 }}>
         <label
           htmlFor="fecha"
-          style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+          style={{
+            display: "block",
+            fontWeight: 700,
+            marginBottom: 6,
+            color: "var(--theme-text)",
+            opacity: 0.9,
+          }}
         >
           Fecha
         </label>
@@ -121,7 +112,13 @@ export default function SalesForm({
       <div style={{ marginBottom: 14 }}>
         <label
           htmlFor="productos"
-          style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+          style={{
+            display: "block",
+            fontWeight: 700,
+            marginBottom: 6,
+            color: "var(--theme-text)",
+            opacity: 0.9,
+          }}
         >
           Productos
         </label>
@@ -140,7 +137,15 @@ export default function SalesForm({
             </option>
           ))}
         </select>
-        <small style={{ display: "block", marginTop: 4, color: "var(--theme-text)", opacity: 0.7, fontSize: 12 }}>
+        <small
+          style={{
+            display: "block",
+            marginTop: 4,
+            color: "var(--theme-text)",
+            opacity: 0.7,
+            fontSize: 12,
+          }}
+        >
           Mantené presionado Ctrl (Windows) o Cmd (Mac) para selección múltiple.
         </small>
       </div>
@@ -149,7 +154,13 @@ export default function SalesForm({
       <div style={{ marginBottom: 14 }}>
         <label
           htmlFor="vendedor"
-          style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+          style={{
+            display: "block",
+            fontWeight: 700,
+            marginBottom: 6,
+            color: "var(--theme-text)",
+            opacity: 0.9,
+          }}
         >
           Vendedor
         </label>
@@ -161,6 +172,7 @@ export default function SalesForm({
           onChange={setText("vendedor")}
           style={{ width: "100%" }}
           required
+          readOnly={!!authResponse}
         />
       </div>
 
@@ -168,7 +180,13 @@ export default function SalesForm({
       <div style={{ marginBottom: 18 }}>
         <label
           htmlFor="cliente"
-          style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+          style={{
+            display: "block",
+            fontWeight: 700,
+            marginBottom: 6,
+            color: "var(--theme-text)",
+            opacity: 0.9,
+          }}
         >
           Cliente
         </label>

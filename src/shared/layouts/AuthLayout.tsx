@@ -8,7 +8,7 @@ export function AuthLayout() {
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom theme-navbar">
           <div className="container-fluid">
             <Link to="/" className="navbar-brand">
-              Calculadora IMC
+              Gestión de Ventas
             </Link>
           </div>
         </nav>
@@ -31,7 +31,7 @@ export function AuthLayout() {
         </section>
       </main>
       <footer className="text-center p-3 border-top mt-auto theme-footer">
-        &copy; 2025 Calculadora IMC
+        &copy; 2025 Gestión de Ventas
       </footer>
     </div>
   );

@@ -1,0 +1,10 @@
+export const GET_CATEGORIES = "GET_CATEGORIES";
+export const CREATE_CATEGORY = "CREATE_CATEGORY";
+export const UPDATE_CATEGORY = "UPDATE_CATEGORY";
+export const DELETE_CATEGORY = "DELETE_CATEGORY";
+
+export const GET_BRANDS = "GET_BRANDS";
+export const GET_BRAND = "GET_BRAND";
+export const SAVE_BRAND = "SAVE_BRAND";
+export const UPDATE_BRAND = "UPDATE_BRAND";
+export const DELETE_BRAND = "DELETE_BRAND";

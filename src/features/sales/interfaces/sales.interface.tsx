@@ -1,6 +1,5 @@
 export interface Sale {
   id?: string;
-  nombre: string;
   fecha: string;
   productos: string[];
   vendedor: string;

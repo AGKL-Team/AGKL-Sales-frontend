@@ -1,19 +1,28 @@
-import React from "react";
+import { useNavigate } from "react-router-dom";
+import LoadingIndicator from "../../../shared/components/LoaderIndicator";
 import Header from "../../dashboard/components/Header";
-import { useCatalog } from "../hooks/useBrand";
 import BrandRow from "../components/BrandRow";
-import { useNavigate } from "react-router-dom";  
+import { useGetBrands } from "../hooks/useGetBrands";
 
 export default function BrandPage() {
-  const { q, setQ, items } = useCatalog();
-  const navigate = useNavigate();                 
+  const navigate = useNavigate();
+  const { brands, isLoading, filter, setFilter } = useGetBrands();
 
   return (
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
       <Header />
 
+      {isLoading && <LoadingIndicator isLoading message="Cargando marcas..." />}
+
       <section style={{ textAlign: "center", padding: "24px 16px 16px" }}>
-        <h2 style={{ fontSize: 42, fontWeight: 800, letterSpacing: ".2px", color: "var(--theme-text)" }}>
+        <h2
+          style={{
+            fontSize: 42,
+            fontWeight: 800,
+            letterSpacing: ".2px",
+            color: "var(--theme-text)",
+          }}
+        >
           Marcas
         </h2>
       </section>
@@ -31,16 +40,29 @@ export default function BrandPage() {
         {/* Buscar + botón “+” */}
         <div style={{ marginBottom: 14 }}>
           <label
-            style={{ display: "block", fontWeight: 700, marginBottom: 6, color: "var(--theme-text)", opacity: 0.9 }}
+            style={{
+              display: "block",
+              fontWeight: 700,
+              marginBottom: 6,
+              color: "var(--theme-text)",
+              opacity: 0.9,
+            }}
           >
             Buscar
           </label>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 42px", gap: 10, alignItems: "center" }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 42px",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
             <input
-              placeholder="Producto o marca…"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
+              placeholder="Marca…"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
               style={{ width: "100%" }}
             />
 
@@ -62,23 +84,30 @@ export default function BrandPage() {
                 textAlign: "center",
                 cursor: "pointer",
               }}
-              onClick={() => navigate("/dashboard/marca/nuevo")}   // ← AQUÍ
+              onClick={() => navigate("/dashboard/brands/new")} // ← AQUÍ
             >
               +
             </button>
           </div>
         </div>
 
-        {/* Lista productos */}
+        {/* Lista de marcas */}
         <div style={{ marginTop: 18 }}>
-          <div style={{ fontWeight: 700, marginBottom: 8, color: "var(--theme-text)", opacity: 0.9 }}>
+          <div
+            style={{
+              fontWeight: 700,
+              marginBottom: 8,
+              color: "var(--theme-text)",
+              opacity: 0.9,
+            }}
+          >
             Lista Marcas
           </div>
 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 140px 120px 120px",
+              gridTemplateColumns: "1fr 1fr 1fr",
               gap: 12,
               padding: "8px 12px",
               background: "var(--color-input-bg)",
@@ -86,13 +115,14 @@ export default function BrandPage() {
               marginBottom: 6,
             }}
           >
+            <span>Imagen</span>
             <span>Marca</span>
-            <span style={{ textAlign: "right" }}>Acciones</span>
+            <span style={{ textAlign: "left" }}>Acciones</span>
           </div>
 
           <div className="theme-table" style={{ borderRadius: 8 }}>
-            {items.map((p) => (
-              <BrandRow key={p.id} p={p} />
+            {brands.map((brand) => (
+              <BrandRow key={brand.id} brand={brand} />
             ))}
           </div>
         </div>
