@@ -20,10 +20,7 @@ export async function saveProduct(input: {
   fd.append("precio", String(input.precio));
   if (input.imagenFile) fd.append("imagen", input.imagenFile);
 
-  const response = await httpClient(`${API_BASE}/products`, {
-    method: "POST",
-    data: fd,
-  });
+  const response = await httpClient.post(`${API_BASE}/products`, fd);
 
   if (!response || !response.status || response.status >= 400) {
     toast.error("No se pudo crear el producto");

@@ -1,92 +1,105 @@
-import React, { useMemo, useState } from "react";
+import { Controller, useFieldArray } from "react-hook-form";
+import Select from "react-select";
+import LoadingIndicator from "../../../shared/components/LoaderIndicator";
+import { useZodForm } from "../../../shared/hooks/useZodForm";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
-import type { Sale } from "../interfaces/sales.interface";
+import { useCatalog } from "../../catalog/hooks/useCatalog";
+import { useGetCustomers } from "../hooks/useGetCustomers";
+import { useSaveSale } from "../hooks/useSaveSale";
+import { CustomerResponse } from "../interfaces/customer-response.interface";
+import {
+  CreateDetailSaleSchemaType,
+  CreateSaleSchema,
+  CreateSaleSchemaType,
+} from "../schemas/create-sale-schema";
 
-type Props = {
-  onSubmit: (data: Omit<Sale, "id" | "total">) => void;
-  onCancel?: () => void;
-  productosDisponibles?: string[]; // ← opcional, default abajo
+const DEFAULT_SALE_ITEM: CreateDetailSaleSchemaType = {
+  product: null,
+  quantity: 1,
+  unitPrice: 0,
+  unitTax: 0,
 };
 
-type FormState = {
-  fecha: string; // yyyy-mm-dd
-  productos: string[]; // múltiples seleccionados
-  vendedor: string;
-  cliente: string;
-};
-
-const DEFAULT_PRODUCTS = [
-  "Producto A",
-  "Producto B",
-  "Producto C",
-  "Producto D",
-  "Producto E",
-];
-
-export default function SalesForm({
-  onSubmit,
-  onCancel,
-  productosDisponibles = DEFAULT_PRODUCTS,
-}: Props) {
+export default function SalesForm() {
   const { authResponse } = useAuthStore();
-  const [form, setForm] = useState<FormState>({
-    fecha: new Date().toISOString().split("T")[0],
-    productos: [],
-    vendedor: authResponse?.email || "",
-    cliente: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+    setValue,
+    watch,
+  } = useZodForm(CreateSaleSchema, {
+    mode: "all",
+    defaultValues: {
+      date: new Date(),
+      sellerEmail: authResponse?.email || "",
+      customer: null,
+      products: [DEFAULT_SALE_ITEM],
+    },
   });
 
-  const setText =
-    (field: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    };
+  const { items, isLoading: isLoadingProducts } = useCatalog();
 
-  const handleProductosChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions).map(
-      (opt) => opt.value
-    );
-    setForm((prev) => ({ ...prev, productos: selected }));
-  };
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "products",
+  });
 
-  const isValid = useMemo(() => {
-    return (
-      form.fecha.trim().length > 0 &&
-      form.productos.length > 0 &&
-      form.vendedor.trim().length > 0 &&
-      form.cliente.trim().length > 0
-    );
-  }, [form]);
+  const productOptions = items.map((product) => ({
+    label: product.name, // Asumo que 'product' tiene 'name'
+    value: product, // Pasamos el objeto 'product' completo
+  }));
 
-  const reset = () =>
-    setForm({
-      fecha: new Date().toISOString().split("T")[0],
-      productos: [],
-      vendedor: authResponse?.email || "",
-      cliente: "",
+  const { customers, isLoading: isLoadingCustomers } = useGetCustomers();
+
+  const customerOptions = customers.map((customer: CustomerResponse) => ({
+    label: `${customer.lastName}, ${customer.name}`,
+    value: customer,
+  }));
+
+  const { save, isSaving } = useSaveSale();
+
+  const onSubmit = async (data: CreateSaleSchemaType) => {
+    await save({
+      customerId: data.customer?.id || 0,
+      sellerId: 0,
+      products: data.products.map((item) => ({
+        productId: item.product?.id || 0,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        unitTax: item.unitTax,
+      })),
+      totalAmount: totalAmount,
     });
-
-  const handleSubmit: React.FormEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    if (!isValid) return;
-
-    const payload: Omit<Sale, "id" | "total"> = {
-      fecha: form.fecha.trim(),
-      productos: form.productos,
-      vendedor: form.vendedor.trim(),
-      cliente: form.cliente.trim(),
-    };
-
-    onSubmit(payload);
-    // Si querés dejar el form listo para otra carga:
-    reset();
   };
+
+  const watchedProducts = watch("products");
+
+  const totalAmount = (watchedProducts || []).reduce((acumulador, item) => {
+    const cantidad = item.quantity || 0;
+    const precio = item.unitPrice || 0;
+    const impuesto = item.unitTax || 0;
+
+    const subtotalItem = (precio + impuesto) * cantidad;
+    return acumulador + subtotalItem;
+  }, 0);
+
+  console.log("ERRORES DEL FORMULARIO:", errors);
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {(isLoadingProducts || isLoadingCustomers) && (
+        <LoadingIndicator
+          message="Recuperando Clientes y Productos..."
+          isLoading={isLoadingProducts || isLoadingCustomers}
+        />
+      )}
+
       {/* Fecha */}
       <div style={{ marginBottom: 14 }}>
         <label
-          htmlFor="fecha"
+          htmlFor="date"
           style={{
             display: "block",
             fontWeight: 700,
@@ -98,56 +111,15 @@ export default function SalesForm({
           Fecha
         </label>
         <input
-          id="fecha"
-          name="fecha"
+          id="date"
           type="date"
-          value={form.fecha}
-          onChange={setText("fecha")}
+          {...register("date")}
           style={{ width: "100%" }}
           required
         />
-      </div>
-
-      {/* Productos */}
-      <div style={{ marginBottom: 14 }}>
-        <label
-          htmlFor="productos"
-          style={{
-            display: "block",
-            fontWeight: 700,
-            marginBottom: 6,
-            color: "var(--theme-text)",
-            opacity: 0.9,
-          }}
-        >
-          Productos
-        </label>
-        <select
-          id="productos"
-          name="productos"
-          multiple
-          value={form.productos}
-          onChange={handleProductosChange}
-          style={{ width: "100%", minHeight: 120, padding: 8 }}
-          required
-        >
-          {productosDisponibles.map((p) => (
-            <option key={p} value={p}>
-              {p}
-            </option>
-          ))}
-        </select>
-        <small
-          style={{
-            display: "block",
-            marginTop: 4,
-            color: "var(--theme-text)",
-            opacity: 0.7,
-            fontSize: 12,
-          }}
-        >
-          Mantené presionado Ctrl (Windows) o Cmd (Mac) para selección múltiple.
-        </small>
+        {errors.date && (
+          <div className="invalid-feedback">{errors.date.message}</div>
+        )}
       </div>
 
       {/* Vendedor */}
@@ -166,55 +138,230 @@ export default function SalesForm({
         </label>
         <input
           id="vendedor"
-          name="vendedor"
-          placeholder="Ej: Juan Pérez"
-          value={form.vendedor}
-          onChange={setText("vendedor")}
+          placeholder="Ej: johndoe@example.com"
+          {...register("sellerEmail")}
           style={{ width: "100%" }}
           required
           readOnly={!!authResponse}
         />
+        {errors.sellerEmail && (
+          <div className="invalid-feedback">{errors.sellerEmail.message}</div>
+        )}
       </div>
 
       {/* Cliente */}
-      <div style={{ marginBottom: 18 }}>
-        <label
-          htmlFor="cliente"
-          style={{
-            display: "block",
-            fontWeight: 700,
-            marginBottom: 6,
-            color: "var(--theme-text)",
-            opacity: 0.9,
-          }}
-        >
+      {/* --- INICIO: SECCIÓN DE CLIENTE (con React-Select) --- */}
+      {/* 4. Reemplaza tu <div> de cliente por este */}
+      <div className="mb-3">
+        <label htmlFor="cliente" className="form-label fw-bold">
           Cliente
         </label>
-        <input
-          id="cliente"
-          name="cliente"
-          placeholder="Ej: María González"
-          value={form.cliente}
-          onChange={setText("cliente")}
-          style={{ width: "100%" }}
-          required
+        <Controller
+          name="customer" // 5. Bindeamos a 'customer' (el objeto)
+          control={control}
+          render={({ field, fieldState }) => (
+            <Select
+              {...field}
+              id="cliente"
+              options={customerOptions}
+              isLoading={isLoadingCustomers}
+              placeholder="Buscar cliente..."
+              // 6. Al cambiar, RHF guarda el objeto 'customer' completo
+              onChange={(selectedOption) => {
+                field.onChange(selectedOption?.value);
+              }}
+              // 7. Lógica para mostrar el valor seleccionado
+              value={customerOptions.find(
+                (opt) => opt.value.id === field.value?.id
+              )}
+              classNamePrefix="react-select"
+              className={fieldState.error ? "is-invalid" : ""}
+            />
+          )}
         />
+        {/* 8. El error ahora viene de 'customer' */}
+        {errors.customer && (
+          <div className="invalid-feedback d-block">
+            {errors.customer.message}
+          </div>
+        )}
+      </div>
+      {/* --- FIN: SECCIÓN DE CLIENTE --- */}
+
+      <hr className="my-4" />
+
+      {/* --- INICIO: SECCIÓN DE PRODUCTOS (FieldArray) --- */}
+      <h5 className="fw-bold">Productos</h5>
+
+      {/* Iterar sobre los campos del FieldArray */}
+      {fields.map((field, index) => (
+        <div
+          key={field.id}
+          className="row g-2 mb-2 align-items-end p-2 border rounded"
+        >
+          {/* Columna: Producto (con react-select) */}
+          <div className="col-md-5">
+            <label className="form-label" htmlFor={`products.${index}.product`}>
+              Producto
+            </label>
+            {/* Usar <Controller> para integrar react-select */}
+            <Controller
+              name={`products.${index}.product`}
+              control={control}
+              render={({ field: controllerField, fieldState }) => (
+                <Select
+                  {...controllerField}
+                  id={`products.${index}.product`}
+                  options={productOptions}
+                  isLoading={isLoadingProducts}
+                  placeholder="Buscar producto..."
+                  // Lógica para auto-rellenar campos
+                  onChange={(selectedOption) => {
+                    console.info(selectedOption);
+                    controllerField.onChange(selectedOption?.value);
+                    setValue(
+                      `products.${index}.unitPrice`,
+                      selectedOption?.value.price || 0
+                    );
+                    setValue(`products.${index}.unitTax`, 0);
+                  }}
+                  value={productOptions.find(
+                    (opt) => opt.value.id === controllerField.value?.id
+                  )}
+                  // Estilos de Bootstrap para errores
+                  classNamePrefix="react-select"
+                  className={fieldState.error ? "is-invalid" : ""}
+                />
+              )}
+            />
+            {errors.products?.[index]?.product && (
+              <div className="invalid-feedback d-block">
+                {errors.products[index].product.message}
+              </div>
+            )}
+          </div>
+
+          {/* Columna: Cantidad */}
+          <div className="col-md-2">
+            <label
+              className="form-label"
+              htmlFor={`products.${index}.quantity`}
+            >
+              Cantidad
+            </label>
+            <input
+              type="number"
+              id={`products.${index}.quantity`}
+              className={`form-control ${
+                errors.products?.[index]?.quantity ? "is-invalid" : ""
+              }`}
+              {...register(`products.${index}.quantity`, {
+                valueAsNumber: true,
+              })}
+            />
+            {errors.products?.[index]?.quantity && (
+              <div className="invalid-feedback">
+                {errors.products[index].quantity.message}
+              </div>
+            )}
+          </div>
+
+          {/* Columna: Precio Unitario */}
+          <div className="col-md-2">
+            <label
+              className="form-label"
+              htmlFor={`products.${index}.unitPrice`}
+            >
+              Precio
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              id={`products.${index}.unitPrice`}
+              className={`form-control ${
+                errors.products?.[index]?.unitPrice ? "is-invalid" : ""
+              }`}
+              {...register(`products.${index}.unitPrice`, {
+                valueAsNumber: true,
+              })}
+              readOnly
+            />
+            {errors.products?.[index]?.unitPrice && (
+              <div className="invalid-feedback">
+                {errors.products[index].unitPrice.message}
+              </div>
+            )}
+          </div>
+
+          {/* Columna: Impuesto Unitario */}
+          <div className="col-md-2">
+            <label className="form-label" htmlFor={`products.${index}.unitTax`}>
+              Impuesto
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              id={`products.${index}.unitTax`}
+              className={`form-control ${
+                errors.products?.[index]?.unitTax ? "is-invalid" : ""
+              }`}
+              {...register(`products.${index}.unitTax`, {
+                valueAsNumber: true,
+              })}
+            />
+          </div>
+
+          {/* Columna: Botón Eliminar */}
+          <div className="col-md-1">
+            <button
+              type="button"
+              className="btn btn-outline-danger"
+              onClick={() => remove(index)} // 12. Handler para eliminar
+              title="Quitar producto"
+            >
+              &times;
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Botón para agregar nuevo producto */}
+      <button
+        type="button"
+        className="btn btn-outline-primary btn-sm mt-2"
+        onClick={() => append(DEFAULT_SALE_ITEM)} // 13. Handler para agregar
+      >
+        + Agregar Producto
+      </button>
+
+      {/* Error general del array de productos (ej: "debe tener al menos 1") */}
+      {errors.products?.root && (
+        <div className="invalid-feedback d-block mt-2">
+          {errors.products.root.message}
+        </div>
+      )}
+
+      <div className="col-md-2 mt-4">
+        <strong>Total: </strong>
+        <span>
+          {totalAmount.toLocaleString("es-AR", {
+            style: "currency",
+            currency: "ARS",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </span>
       </div>
 
+      {/* --- FIN: SECCIÓN DE PRODUCTOS --- */}
+
+      <hr className="my-4" />
+
       {/* Botones */}
-      <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+      <div className="d-flex gap-2 justify-content-end">
         <button
           type="button"
-          onClick={onCancel}
-          style={{
-            padding: "8px 14px",
-            border: "1px solid var(--color-input-border)",
-            borderRadius: 999,
-            background: "var(--color-btn-bg)",
-            color: "var(--theme-text)",
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
+          className="btn btn-light rounded-pill px-3"
           title="Cancelar y volver"
         >
           Cancelar
@@ -222,20 +369,11 @@ export default function SalesForm({
 
         <button
           type="submit"
-          disabled={!isValid}
-          style={{
-            padding: "8px 14px",
-            border: "1px solid var(--color-input-border)",
-            borderRadius: 999,
-            background: "#5b9bd5",
-            color: "#fff",
-            fontWeight: 700,
-            cursor: isValid ? "pointer" : "not-allowed",
-            opacity: isValid ? 1 : 0.6,
-          }}
+          disabled={isSaving} // Deshabilitar si no es válido o está guardando
+          className="btn btn-primary rounded-pill px-3"
           title="Guardar venta"
         >
-          Guardar
+          {isSaving ? "Guardando..." : "Guardar"}
         </button>
       </div>
     </form>

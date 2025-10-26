@@ -51,7 +51,7 @@ export default function BrandRow({ brand }: Props) {
           type="button"
           title="Categorías"
           style={{ padding: "4px 10px", borderRadius: 999, cursor: "pointer" }}
-          onClick={() => navigate(`/dashboard/brand/categories/${brand.id}`)}
+          onClick={() => navigate(`/dashboard/brands/categories/${brand.id}`)}
         >
           Categorías
         </button>

@@ -14,7 +14,7 @@ export function useCatalog() {
     enabled: true,
   });
 
-  const items: ProductResponse[] = useMemo(() => {
+  const products: ProductResponse[] = useMemo(() => {
     if (!data) return [];
 
     const t = q.trim().toLowerCase();
@@ -29,5 +29,5 @@ export function useCatalog() {
     );
   }, [q, data]);
 
-  return { q, items, isLoading, setQ };
+  return { q, items: products, isLoading, setQ };
 }

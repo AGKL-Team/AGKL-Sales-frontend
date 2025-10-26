@@ -4,6 +4,7 @@ import DashboardCard from "../components/dashboard-form";
 import type { DashboardCardItem } from "../interfaces/types";
 
 // IMPORTS DE IMÁGENES DESDE src/assets
+import imgReportes from "../../../assets/Data Scientist.png";
 import imgVentas from "../../../assets/Warehouse Shelf.png";
 import imgCatalogo from "../../../assets/catalog.png";
 import imgMarcas from "../../../assets/r marca registrada.png";
@@ -33,12 +34,12 @@ const dashboardItems: DashboardCardItem[] = [
     href: "/dashboard/categories",
     iconUrl: imgMarcas,
   },
-  // {
-  //   id: "reports",
-  //   label: "Reportes",
-  //   href: "/dashboard/reports",
-  //   iconUrl: imgReportes,
-  // },
+  {
+    id: "reports",
+    label: "Reportes",
+    href: "/reports",
+    iconUrl: imgReportes,
+  },
 ];
 
 const DashboardPage: React.FC = () => {

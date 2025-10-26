@@ -35,11 +35,13 @@ export default function ProductRow({ p }: Props) {
               state: { product: p },
             })
           }
+          className="btn btn-primary"
           style={{ padding: "4px 10px", borderRadius: 999, cursor: "pointer" }}
         >
           Editar
         </button>
         <button
+          className="btn btn-danger"
           type="button"
           title="Borrar"
           style={{ padding: "4px 10px", borderRadius: 999, cursor: "pointer" }}

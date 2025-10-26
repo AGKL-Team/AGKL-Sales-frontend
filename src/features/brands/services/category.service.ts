@@ -32,3 +32,22 @@ export async function getCategoriesByBrand(brandId: number, filter?: string) {
 
   return response.data;
 }
+
+export async function associateCategoryToBrand(
+  brandId: number,
+  categoryId: number
+) {
+  const response = await httpClient.post(
+    `${API_URL}/categories/associate-brand`,
+    {
+      brandId,
+      categoryId,
+    }
+  );
+
+  if (!response || response.status !== 200) {
+    toast.error("Error al asociar la categoría a la marca");
+  } else {
+    toast.success("Categoría asociada a la marca correctamente");
+  }
+}
