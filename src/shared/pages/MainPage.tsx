@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import HomeImage from "../components/HomeImage";
 
 export default function MainPage() {
@@ -11,7 +12,7 @@ export default function MainPage() {
         <HomeImage size={300} className="mx-auto mb-6" />
 
         <div className="max-w-md w-full mx-auto">
-          <a href="/auth/log-in" className="block">
+          <Link to="/auth/log-in" className="block">
             <button
               type="button"
               className="
@@ -20,7 +21,7 @@ export default function MainPage() {
             >
               Empezar ahora
             </button>
-          </a>
+          </Link>
         </div>
       </section>
     </main>
