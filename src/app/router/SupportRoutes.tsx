@@ -11,5 +11,5 @@ const SupportRoutes = [
     element: <RedirectTo />,
   },
 ];
-
+  
 export default SupportRoutes;

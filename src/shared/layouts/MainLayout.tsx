@@ -8,7 +8,7 @@ export default function MainLayout() {
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom theme-navbar">
           <div className="container-fluid">
             <Link to="/" className="navbar-brand">
-              Calculadora IMC
+              Gestión de Ventas
             </Link>
             <button
               className="navbar-toggler"

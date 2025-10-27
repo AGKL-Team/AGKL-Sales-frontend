@@ -1,5 +1,6 @@
 import { Link, Outlet } from "react-router-dom";
-import Logo from "../components/Logo";
+
+import ImageBag from "../components/imageBag";
 export function AuthLayout() {
   return (
     <div className="d-flex flex-column vh-100 fadeInUp theme-responsive">
@@ -7,7 +8,7 @@ export function AuthLayout() {
         <nav className="navbar navbar-expand-lg navbar-light bg-light border-bottom theme-navbar">
           <div className="container-fluid">
             <Link to="/" className="navbar-brand">
-              Calculadora IMC
+              Gestión de Ventas
             </Link>
           </div>
         </nav>
@@ -17,7 +18,7 @@ export function AuthLayout() {
           style={{ backgroundColor: "#9cabfdff", borderRadius: 20 }}
           className="d-none d-lg-flex flex-grow-1 align-items-center justify-content-center"
         >
-          <Logo />
+          <ImageBag />
         </section>
         <section
           className="d-flex flex-grow-1 align-items-center justify-content-center"
@@ -30,7 +31,7 @@ export function AuthLayout() {
         </section>
       </main>
       <footer className="text-center p-3 border-top mt-auto theme-footer">
-        &copy; 2025 Calculadora IMC
+        &copy; 2025 Gestión de Ventas
       </footer>
     </div>
   );
