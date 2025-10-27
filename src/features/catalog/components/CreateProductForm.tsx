@@ -215,12 +215,18 @@ export default function CreateProductForm() {
                   isLoading={isLoadingBrands}
                   placeholder="Seleccione una Marca:"
                   onChange={(selectedOption) => {
-                    field.onChange(selectedOption);
+                    // --- CAMBIO AQUÍ ---
+                    // Guarda solo el objeto BrandResponse (o null si se deselecciona)
+                    const brandValue = selectedOption
+                      ? selectedOption.value
+                      : null;
+                    field.onChange(brandValue);
+                    // ------------------
+
                     setBrandSelected(
-                      selectedOption
-                        ? (selectedOption.value as BrandResponse)
-                        : null
+                      brandValue ? (brandValue as BrandResponse) : null
                     );
+
                     // Reset category when brand changes
                     setCategorySelected(null);
                     setValue("category", null);

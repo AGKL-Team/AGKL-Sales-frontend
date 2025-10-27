@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { selectRequiredNumber } from "../../../shared/utils/required-number";
 
 export const SignUpSchema = z
   .object({
@@ -24,18 +23,6 @@ export const SignUpSchema = z
     confirmPassword: z.string({ message: "Invalid password." }).min(1, {
       message: "You must confirm your password.",
     }),
-    height: z
-      .string()
-      .refine(selectRequiredNumber, {
-        message: "The height must be between 0.1 and 3",
-      })
-      .transform((value) => Number(value))
-      .pipe(
-        z
-          .number()
-          .min(0.1, { message: "The height must be between 0.1 and 3" })
-          .max(3, { message: "The height must be between 0.1 and 3" })
-      ),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match.",

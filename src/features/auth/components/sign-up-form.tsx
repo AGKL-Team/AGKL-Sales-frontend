@@ -69,22 +69,6 @@ export default function SignUpForm() {
           </div>
         )}
       </div>
-      <div className="mb-3">
-        <label htmlFor="height">Altura (m)</label>
-        <input
-          id="height"
-          type="number"
-          step="0.01"
-          min="0.1"
-          max="3"
-          placeholder="1.75"
-          className={`form-control ${errors.height ? "is-invalid" : ""}`}
-          {...register("height")}
-        />
-        {errors.height && (
-          <div className="invalid-feedback">{errors.height.message}</div>
-        )}
-      </div>
       <div className="text-center">
         <button
           type="submit"
