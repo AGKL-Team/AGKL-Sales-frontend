@@ -271,11 +271,15 @@ export default function CreateProductForm() {
                   isLoading={isLoadingBrandCategories}
                   placeholder="Seleccione una Categoría:"
                   onChange={(selectedOption) => {
-                    field.onChange(selectedOption);
+                    // --- CAMBIO AQUÍ ---
+                    const categoryValue = selectedOption
+                      ? selectedOption.value
+                      : null;
+                    field.onChange(categoryValue);
+                    // ------------------
+
                     setCategorySelected(
-                      selectedOption
-                        ? (selectedOption.value as CategoryResponse)
-                        : null
+                      categoryValue ? (categoryValue as CategoryResponse) : null
                     );
                   }}
                   value={categoriesOptions.find(
