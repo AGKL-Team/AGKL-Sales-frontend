@@ -1,4 +1,5 @@
 import z from "zod";
+import { selectRequiredNumber } from "../../../shared/utils/required-number";
 import { BrandSchema } from "./brand-schema";
 import { CategorySchema } from "./category-schema";
 
@@ -11,7 +12,13 @@ export const CreateProductSchema = z.object({
     .string()
     .max(255, "La descripción no puede exceder 255 caracteres")
     .optional(),
-  price: z.number().min(0, "El precio no puede ser negativo"),
+  price: z
+    .string()
+    .refine(selectRequiredNumber, {
+      message: "Indique el precio del producto",
+    })
+    .transform((value) => Number(value))
+    .pipe(z.number().min(0, { message: "El precio debe ser mayor que 0" })),
   brand: BrandSchema.nullable().refine((brand) => brand !== null, {
     message: "Debe seleccionar una marca",
   }),
