@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 const pill: React.CSSProperties = {
@@ -42,26 +42,26 @@ export default function Header() {
       >
         <section style={{ textAlign: "center" }}>
           <h1 style={{ fontWeight: 700, fontSize: 18 }}>
-            <a
-              href="/redirect"
+            <Link
+              to="/redirect"
               style={{
                 color: "inherit",
                 textDecoration: "none",
               }}
             >
               Gestion de Ventas
-            </a>
+            </Link>
           </h1>
         </section>
 
         <div style={{ display: "flex", gap: 8 }}>
           <button style={{ ...pill, background: "#5b9bd5" }}>
-            <a
+            <Link
               style={{ color: "inherit", textDecoration: "none" }}
-              href="/dashboard/account"
+              to="/dashboard/account"
             >
               Cuenta
-            </a>
+            </Link>
           </button>
           <button style={{ ...pill, background: "#e57373" }} onClick={onLogOut}>
             Cerrar Sesion
