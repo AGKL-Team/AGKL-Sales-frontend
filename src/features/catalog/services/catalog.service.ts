@@ -1,24 +1,23 @@
 import { toast } from "sonner";
 import { httpClient } from "../../../shared/http/httpClient";
+import { CreateProductRequest } from "../interfaces/create-product-request.interface";
 import type { ProductResponse } from "../interfaces/product-response.interface";
 
 const API_BASE = import.meta.env.VITE_BACKEND_URL;
 
-export async function saveProduct(input: {
-  nombre: string;
-  descripcion: string;
-  categoria: string;
-  marca: string;
-  precio: number;
-  imagenFile?: File | null;
-}): Promise<void> {
+export async function saveProduct(
+  request: CreateProductRequest
+): Promise<void> {
   const fd = new FormData();
-  fd.append("nombre", input.nombre);
-  fd.append("descripcion", input.descripcion);
-  fd.append("categoria", input.categoria);
-  fd.append("marca", input.marca);
-  fd.append("precio", String(input.precio));
-  if (input.imagenFile) fd.append("imagen", input.imagenFile);
+  fd.append("name", request.name);
+  fd.append("description", request.description);
+  if (request.category) fd.append("categoryId", request.category.id.toString());
+  fd.append("brandId", request.brand.id.toString());
+  fd.append("price", request.price.toString());
+
+  for (const image of request.images) {
+    fd.append("images", image);
+  }
 
   const response = await httpClient.post(`${API_BASE}/products`, fd);
 

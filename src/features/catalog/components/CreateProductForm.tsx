@@ -1,74 +1,100 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Controller } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
+import Select from "react-select";
+import { toast } from "sonner";
+import LoadingIndicator from "../../../shared/components/LoaderIndicator";
+import { useZodForm } from "../../../shared/hooks/useZodForm";
+import { useGetBrandCategories } from "../../brands/hooks/useGetBrandCategories";
+import { useGetBrands } from "../../brands/hooks/useGetBrands";
+import { BrandResponse } from "../../brands/interfaces/brand-response.interface";
+import { CategoryResponse } from "../../brands/interfaces/category-response.interface";
 import Header from "../../dashboard/components/Header";
 import { useSaveProduct } from "../hooks/useSaveProduct";
-import type { ProductResponse } from "../interfaces/product-response.interface";
-
-type FormState = {
-  nombre: string;
-  descripcion: string;
-  categoria: string;
-  marca: string;
-  precio: string; // string para tipeo; se parsea al guardar
-  imagenFile: File | null;
-  imagenPreview: string | null; // para ver la imagen antes de subir
-};
+import { CreateProductRequest } from "../interfaces/create-product-request.interface";
+import {
+  CreateProductSchema,
+  CreateProductSchemaType,
+} from "../schemas/create-product-schema";
 
 export default function CreateProductForm() {
   const navigate = useNavigate();
-  const { save } = useSaveProduct();
 
-  const [form, setForm] = useState<FormState>({
-    nombre: "",
-    descripcion: "",
-    categoria: "",
-    marca: "",
-    precio: "",
-    imagenFile: null,
-    imagenPreview: null,
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    control,
+    setValue,
+  } = useZodForm(CreateProductSchema, {
+    mode: "all",
   });
 
-  const setText =
-    (k: keyof Omit<FormState, "imagenFile" | "imagenPreview">) =>
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >
-    ) =>
-      setForm((f) => ({ ...f, [k]: e.target.value }));
+  const { brands, isLoading: isLoadingBrands } = useGetBrands();
+
+  const brandOptions = brands.map((brand) => ({
+    label: brand.name,
+    value: brand,
+  }));
+
+  const [brandSelected, setBrandSelected] = useState<BrandResponse | null>(
+    null
+  );
+  const { categories, isLoading: isLoadingBrandCategories } =
+    useGetBrandCategories(brandSelected?.id || 0, false);
+
+  const categoriesOptions = categories.map((category) => ({
+    label: category.name,
+    value: category,
+  }));
+
+  const [categorySelected, setCategorySelected] =
+    useState<CategoryResponse | null>(null);
+
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const { save } = useSaveProduct();
 
   const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (!file) {
-      setForm((f) => ({ ...f, imagenFile: null, imagenPreview: null }));
+      setImage(null);
+      setImagePreview(null);
       return;
     }
     const url = URL.createObjectURL(file);
-    setForm((f) => ({ ...f, imagenFile: file, imagenPreview: url }));
+    setImage(file);
+    setImagePreview(url);
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!form.nombre.trim() || !form.marca.trim() || !form.precio.trim()) {
-      alert("Completá nombre, marca y precio.");
+  const onSubmit = async (data: CreateProductSchemaType) => {
+    if (!brandSelected) {
+      toast.error("Por favor, selecciona una marca para el producto.");
+      return;
+    }
+    if (!image) {
+      toast.error("Por favor, selecciona una imagen para el producto.");
       return;
     }
 
-    const precioNumber = Number(form.precio.replace(/[^\d]/g, ""));
-    const payload: Omit<ProductResponse, "id"> = {
-      name: form.nombre.trim(),
-      description: form.descripcion.trim(),
-      categoryId: form.categoria,
-      brandId: form.marca.trim(),
-      price: isNaN(precioNumber) ? 0 : precioNumber,
-      imagenUrl: form.imagenFile ? form.imagenFile.name : null, // acá después pondrás la URL devuelta por el backend
+    const request: CreateProductRequest = {
+      name: data.name,
+      description: data.description ?? "",
+      brand: brandSelected,
+      category: categorySelected ?? undefined,
+      price: data.price,
+      images: [image],
     };
 
-    console.log("Crear producto (payload listo para API):", payload);
-
-    await save(payload);
+    await save(request);
   };
+
+  useEffect(() => {
+    if (brandSelected === null) {
+      return;
+    }
+  }, [brandSelected]);
 
   return (
     <div className="theme-responsive" style={{ minHeight: "100vh" }}>
@@ -88,6 +114,13 @@ export default function CreateProductForm() {
         </h2>
       </section>
 
+      {(isLoadingBrands || isLoadingBrandCategories) && (
+        <LoadingIndicator
+          isLoading={isLoadingBrands || isLoadingBrandCategories}
+          message="Cargando datos..."
+        />
+      )}
+
       {/* Card del formulario */}
       <section
         className="theme-card"
@@ -99,11 +132,11 @@ export default function CreateProductForm() {
           boxShadow: "0 2px 0 rgba(0,0,0,.08), 0 8px 16px rgba(0,0,0,.06)",
         }}
       >
-        <form onSubmit={onSubmit} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* Nombre */}
           <div style={{ marginBottom: 14 }}>
             <label
-              htmlFor="nombre"
+              htmlFor="name"
               style={{
                 display: "block",
                 fontWeight: 700,
@@ -115,20 +148,23 @@ export default function CreateProductForm() {
               Nombre
             </label>
             <input
-              id="nombre"
-              name="nombre"
+              id="name"
               placeholder="Ej: Producto 6"
               title="Nombre del producto"
-              value={form.nombre}
-              onChange={setText("nombre")}
+              {...register("name")}
               style={{ width: "100%" }}
             />
+            {errors.name && (
+              <div className="invalid-feedback d-block">
+                {errors.name.message}
+              </div>
+            )}
           </div>
 
           {/* Descripción */}
           <div style={{ marginBottom: 14 }}>
             <label
-              htmlFor="descripcion"
+              htmlFor="description"
               style={{
                 display: "block",
                 fontWeight: 700,
@@ -140,21 +176,74 @@ export default function CreateProductForm() {
               Descripción
             </label>
             <textarea
-              id="descripcion"
-              name="descripcion"
+              id="description"
               placeholder="Detalle del producto…"
               title="Descripción del producto"
-              value={form.descripcion}
-              onChange={setText("descripcion")}
+              {...register("description")}
               rows={3}
               style={{ width: "100%", resize: "vertical" }}
             />
+            {errors.description && (
+              <div className="invalid-feedback d-block">
+                {errors.description.message}
+              </div>
+            )}
+          </div>
+
+          {/* Marca */}
+          <div style={{ marginBottom: 14 }}>
+            <label
+              htmlFor="brand"
+              style={{
+                display: "block",
+                fontWeight: 700,
+                marginBottom: 6,
+                color: "var(--theme-text)",
+                opacity: 0.9,
+              }}
+            >
+              Marca
+            </label>
+            <Controller
+              name="brand"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Select
+                  {...field}
+                  id="brand"
+                  options={brandOptions}
+                  isLoading={isLoadingBrands}
+                  placeholder="Seleccione una Marca:"
+                  onChange={(selectedOption) => {
+                    field.onChange(selectedOption);
+                    setBrandSelected(
+                      selectedOption
+                        ? (selectedOption.value as BrandResponse)
+                        : null
+                    );
+                    // Reset category when brand changes
+                    setCategorySelected(null);
+                    setValue("category", null);
+                  }}
+                  value={brandOptions.find(
+                    (opt) => opt.value.id === field.value?.id
+                  )}
+                  classNamePrefix={"react-select"}
+                  className={fieldState.error ? "is-invalid" : ""}
+                />
+              )}
+            />
+            {errors.brand && (
+              <div className="invalid-feedback d-block">
+                {errors.brand.message}
+              </div>
+            )}
           </div>
 
           {/* Categoría */}
           <div style={{ marginBottom: 14 }}>
             <label
-              htmlFor="categoria"
+              htmlFor="category"
               style={{
                 display: "block",
                 fontWeight: 700,
@@ -165,28 +254,43 @@ export default function CreateProductForm() {
             >
               Categoría
             </label>
-            <select
-              id="categoria"
-              name="categoria"
-              title="Categoría del producto"
-              value={form.categoria}
-              onChange={setText("categoria")}
-              style={{ width: "100%" }}
-            >
-              <option value="">Seleccionar…</option>
-              <option value="Electrónica">Electrónica</option>
-              <option value="Alimentos">Alimentos</option>
-              <option value="Bebidas">Bebidas</option>
-              <option value="Hogar">Hogar</option>
-              <option value="Indumentaria">Indumentaria</option>
-              <option value="Otros">Otros</option>
-            </select>
+            <Controller
+              name="category"
+              control={control}
+              render={({ field, fieldState }) => (
+                <Select
+                  {...field}
+                  id="category"
+                  options={categoriesOptions}
+                  isLoading={isLoadingBrandCategories}
+                  placeholder="Seleccione una Categoría:"
+                  onChange={(selectedOption) => {
+                    field.onChange(selectedOption);
+                    setCategorySelected(
+                      selectedOption
+                        ? (selectedOption.value as CategoryResponse)
+                        : null
+                    );
+                  }}
+                  value={categoriesOptions.find(
+                    (opt) => opt.value.id === field.value?.id
+                  )}
+                  classNamePrefix={"react-select"}
+                  className={fieldState.error ? "is-invalid" : ""}
+                />
+              )}
+            />
+            {errors.category && (
+              <div className="invalid-feedback d-block">
+                {errors.category.message}
+              </div>
+            )}
           </div>
 
           {/* Precio */}
           <div style={{ marginBottom: 14 }}>
             <label
-              htmlFor="precio"
+              htmlFor="price"
               style={{
                 display: "block",
                 fontWeight: 700,
@@ -198,40 +302,18 @@ export default function CreateProductForm() {
               Precio
             </label>
             <input
-              id="precio"
-              name="precio"
+              id="price"
               inputMode="numeric"
               placeholder="$ 0"
               title="Precio del producto"
-              value={form.precio}
-              onChange={setText("precio")}
+              {...register("price")}
               style={{ width: "100%" }}
             />
-          </div>
-
-          {/* Marca */}
-          <div style={{ marginBottom: 14 }}>
-            <label
-              htmlFor="marca"
-              style={{
-                display: "block",
-                fontWeight: 700,
-                marginBottom: 6,
-                color: "var(--theme-text)",
-                opacity: 0.9,
-              }}
-            >
-              Marca
-            </label>
-            <input
-              id="marca"
-              name="marca"
-              placeholder="Ej: marca F"
-              title="Marca del producto"
-              value={form.marca}
-              onChange={setText("marca")}
-              style={{ width: "100%" }}
-            />
+            {errors.price && (
+              <div className="invalid-feedback d-block">
+                {errors.price.message}
+              </div>
+            )}
           </div>
 
           {/* Imagen */}
@@ -256,6 +338,11 @@ export default function CreateProductForm() {
               accept="image/*"
               onChange={onPickImage}
             />
+            {!image && (
+              <div className="invalid-feedback d-block">
+                Por favor, selecciona una imagen para el producto.
+              </div>
+            )}
             <div
               style={{
                 marginTop: 10,
@@ -269,9 +356,9 @@ export default function CreateProductForm() {
                 overflow: "hidden",
               }}
             >
-              {form.imagenPreview ? (
+              {imagePreview ? (
                 <img
-                  src={form.imagenPreview}
+                  src={imagePreview}
                   alt="Vista previa de la imagen seleccionada"
                   style={{
                     maxWidth: "100%",

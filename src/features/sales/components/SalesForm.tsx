@@ -47,8 +47,8 @@ export default function SalesForm() {
   });
 
   const productOptions = items.map((product) => ({
-    label: product.name, // Asumo que 'product' tiene 'name'
-    value: product, // Pasamos el objeto 'product' completo
+    label: product.name,
+    value: product,
   }));
 
   const { customers, isLoading: isLoadingCustomers } = useGetCustomers();
@@ -153,7 +153,7 @@ export default function SalesForm() {
       {/* --- INICIO: SECCIÓN DE CLIENTE (con React-Select) --- */}
       {/* 4. Reemplaza tu <div> de cliente por este */}
       <div className="mb-3">
-        <label htmlFor="cliente" className="form-label fw-bold">
+        <label htmlFor="customer" className="form-label fw-bold">
           Cliente
         </label>
         <Controller
@@ -162,7 +162,7 @@ export default function SalesForm() {
           render={({ field, fieldState }) => (
             <Select
               {...field}
-              id="cliente"
+              id="customer"
               options={customerOptions}
               isLoading={isLoadingCustomers}
               placeholder="Buscar cliente..."

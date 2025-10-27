@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { GET_BRAND_CATEGORIES } from "../constants";
 import { getCategoriesByBrand } from "../services/category.service";
 
-export const useGetBrandCategories = (brandId: number | null) => {
+export const useGetBrandCategories = (
+  brandId: number | null,
+  redirectOnError: boolean = true
+) => {
   const navigate = useNavigate();
 
   /** Effect to ensure the brand ID is provided */
@@ -15,11 +18,12 @@ export const useGetBrandCategories = (brandId: number | null) => {
         duration: 3000,
       });
 
-      setTimeout(() => {
-        navigate("/dashboard/brands");
-      }, 3000);
+      if (redirectOnError)
+        setTimeout(() => {
+          navigate("/dashboard/brands");
+        }, 3000);
     }
-  }, [brandId, navigate]);
+  }, [brandId, navigate, redirectOnError]);
 
   const { data, isLoading } = useQuery({
     queryKey: [GET_BRAND_CATEGORIES, brandId],

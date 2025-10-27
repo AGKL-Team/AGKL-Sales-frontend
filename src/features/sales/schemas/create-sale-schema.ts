@@ -1,10 +1,5 @@
 import z from "zod";
-
-export const ProductSchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  price: z.number(),
-});
+import { ProductSchema } from "../../catalog/schemas/product-schema";
 
 export const CreateDetailSaleSchema = z.object({
   product: ProductSchema.nullable().refine((product) => product !== null, {
